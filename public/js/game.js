@@ -41,6 +41,11 @@ function init() {
 
 	// Start listening for events
 	setEventHandlers();
+
+	setTimeout(function()
+	{
+		socket.emit("find game");
+	}, 3000);
 };
 
 
