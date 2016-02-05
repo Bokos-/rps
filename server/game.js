@@ -21,6 +21,7 @@ var socket,		// Socket controller
 function init() {
 	// Create an empty array to store players
 	players = [];
+	
 
 	// Set up Socket.IO to listen on port xy
 	socket = io.listen(3003);
