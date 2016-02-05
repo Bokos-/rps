@@ -5,9 +5,25 @@ var canvas,			// Canvas DOM element
 	ctx,			// Canvas rendering context
 	keys,			// Keyboard input
 	localPlayer,	// Local player
-	remotePlayers,	// Remote players
-	socket;			// Socket connection
+	remotePlayer,	// Remote players
+	socket,			// Socket connection
+	images = {};
 
+var totalResources = 6,
+	numResourcesLoaded = 0;
+
+var WEAPON = {
+	NONE: 0,
+	ROCK: 1,
+	PAPER: 2,
+	SCISSORS: 3,
+	PISTOL: 4,
+	FLAG: 5
+};
+
+var FIELD_SIZE = 70;
+
+var margin = {left: 358, top: 40};
 
 /**************************************************
 ** GAME INITIALISATION
@@ -18,34 +34,28 @@ function init() {
 	ctx = canvas.getContext("2d");
 
 	// Maximise the canvas
-	canvas.width = 750;
-	canvas.height = 520;
-
-	// Initialise keyboard controls
-	keys = new Keys();
-
-	// Calculate a random start position for the local player
-	// The minus 5 (half a player size) stops the player being
-	// placed right on the egde of the screen
-	var startX = Math.round(Math.random()*(canvas.width-5)),
-		startY = Math.round(Math.random()*(canvas.height-5));
+	canvas.width = 888;
+	canvas.height = 500;
 
 	// Initialise the local player
-	localPlayer = new Player(startX, startY);
+	localPlayer = new Player();
 
 	// Initialise socket connection
 	socket = io.connect("http://192.168.0.169:3003", {transports: ["websocket"]});
 
 	// Initialise remote players array
-	remotePlayers = [];
+	remotePlayer = null;
 
 	// Start listening for events
 	setEventHandlers();
 
-	setTimeout(function()
-	{
-		socket.emit("find game");
-	}, 3000);
+	loadImage("monkey");
+	loadImage("elephant");
+	loadImage("sob");
+
+	loadImage("pinguin");
+	loadImage("lion");
+	loadImage("fox");
 };
 
 
@@ -53,12 +63,8 @@ function init() {
 ** GAME EVENT HANDLERS
 **************************************************/
 var setEventHandlers = function() {
-	// Keyboard
-	window.addEventListener("keydown", onKeydown, false);
-	window.addEventListener("keyup", onKeyup, false);
-
-	// Window resize
-	window.addEventListener("resize", onResize, false);
+	// Mouse click
+	window.addEventListener("mouseup", onClick, false);
 
 	// Socket connection successful
 	socket.on("connect", onSocketConnected);
@@ -74,35 +80,36 @@ var setEventHandlers = function() {
 
 	// Player removed message received
 	socket.on("remove player", onRemovePlayer);
+
+	socket.on("switch weapon", onSwitchWeapon);
+
+	socket.on("fight", onFight);
 };
 
 // Keyboard key down
-function onKeydown(e) {
+function onClick(e) {
 	if (localPlayer) {
 		keys.onKeyDown(e);
 	};
 };
 
-// Keyboard key up
-function onKeyup(e) {
-	if (localPlayer) {
-		keys.onKeyUp(e);
-	};
-};
+function onSwitchWeapon(data)
+{
+	for (var i=0; i<data.length; i++)
+		localPlayer.warrior[i] = new Warrior(data[i].x, data[i].y, data[i].weapon);
+}
 
-// Browser window resize
-function onResize(e) {
-	// Maximise the canvas
-	// canvas.width = window.innerWidth;
-	// canvas.height = window.innerHeight;
-};
+function onFight()
+{
+
+}
 
 // Socket connected
 function onSocketConnected() {
 	console.log("Connected to socket server");
 
 	// Send local player data to the game server
-	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY()});
+	socket.emit("new player");
 };
 
 // Socket disconnected
@@ -112,43 +119,25 @@ function onSocketDisconnect() {
 
 // New player
 function onNewPlayer(data) {
-	console.log("New player connected: "+data.id);
+	console.log("New player connected");
 
 	// Initialise the new player
-	var newPlayer = new Player(data.x, data.y);
-	newPlayer.id = data.id;
+	var newPlayer = new Player();
+	remotePlayer = newPlayer;
 
-	// Add new player to the remote players array
-	remotePlayers.push(newPlayer);
+	for (var i=0; i<2; i++)
+		for (var j=0; j<7; j++)
+		remotePlayer.warrior[i*7+j] = new Warrior(j, i, WEAPON.NONE);
 };
 
 // Move player
 function onMovePlayer(data) {
-	var movePlayer = playerById(data.id);
 
-	// Player not found
-	if (!movePlayer) {
-		console.log("Player not found: "+data.id);
-		return;
-	};
-
-	// Update player position
-	movePlayer.setX(data.x);
-	movePlayer.setY(data.y);
 };
 
 // Remove player
 function onRemovePlayer(data) {
-	var removePlayer = playerById(data.id);
 
-	// Player not found
-	if (!removePlayer) {
-		console.log("Player not found: "+data.id);
-		return;
-	};
-
-	// Remove player from array
-	remotePlayers.splice(remotePlayers.indexOf(removePlayer), 1);
 };
 
 
@@ -171,7 +160,7 @@ function update() {
 	// Update local player and check for change
 	if (localPlayer.update(keys)) {
 		// Send local player data to the game server
-		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
+		socket.emit("move player");
 	};
 };
 
@@ -182,28 +171,65 @@ function update() {
 function draw() {
 	// Wipe the canvas clean
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-	// Draw the local player
-	localPlayer.draw(ctx);
-
-	// Draw the remote players
-	var i;
-	for (i = 0; i < remotePlayers.length; i++) {
-		remotePlayers[i].draw(ctx);
-	};
+	drawFloor();
+	ctx.drawImage(images["pinguin"], margin.left, margin.top);
 };
 
+function drawFloor()
+{
+	for (var i=0; i<6; i++)
+		for (var j=0; j<7; j++)
+		{
+			if (i%2==0)
+			ctx.fillStyle = (j%2==0)? "#C7DE81" : "#A0C928";
+			else
+			ctx.fillStyle = (j%2==0)? "#A0C928" : "#C7DE81";	
 
-/**************************************************
-** GAME HELPER FUNCTIONS
-**************************************************/
-// Find player by ID
-function playerById(id) {
-	var i;
-	for (i = 0; i < remotePlayers.length; i++) {
-		if (remotePlayers[i].id == id)
-			return remotePlayers[i];
-	};
-	
-	return false;
-};
+			ctx.fillRect(margin.left + FIELD_SIZE * j, margin.top + FIELD_SIZE * i, FIELD_SIZE, FIELD_SIZE);
+		}
+}
+
+function loadImage(name)
+{
+	images[name] = new Image();
+	images[name].onload = function()
+	{
+		resourceLoaded();
+	}
+	images[name].src = "images/" + name + ".png";
+}
+
+function getImage(weapon)
+{
+	switch (weapon)
+	{
+		case WEAPON.NONE:
+			return "pinguin";
+		break;
+		case WEAPON.ROCK:
+			return "elephant";
+		break;
+		case WEAPON.PAPER:
+			return "monkey";
+		break;
+		case WEAPON.SCISSORS:
+			return "sob";
+		break;
+		case WEAPON.PISTOL:
+			return "lion";
+		break;
+		case WEAPON.FLAG:
+			return "fox";
+		break;
+		default: 
+			return WEAPON.NONE;
+		break;
+	}
+}
+
+function resourceLoaded()
+{
+	numResourcesLoaded++;
+	if (numResourcesLoaded == totalResources)
+		console.log("Resources loaded.");
+}

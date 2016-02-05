@@ -9,7 +9,7 @@ var WEAPON = {
 	NONE: 0,
 	ROCK: 1,
 	PAPER: 2,
-	SCOSSORS: 3,
+	SCISSORS: 3,
 	PISTOL: 4,
 	FLAG: 5
 }
