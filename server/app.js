@@ -68,7 +68,7 @@ function onSocketConnection(client) {
 
 	client.on("find game", onFindGame);
 	
-	client.on("set", onSetGameCommand);
+	client.on("command", onSetGameCommand);
 
 	// Listen for client disconnected
 	client.on("disconnect", onClientDisconnect);

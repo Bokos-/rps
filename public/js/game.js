@@ -37,6 +37,8 @@ var minX = getXPos(0),
 	maxX = getXPos(7),
 	maxY = getYPos(6);
 
+var buttonSwitchWeapon = document.getElementById("switchWeapon");
+
 /**************************************************
 ** GAME INITIALISATION
 **************************************************/
@@ -75,6 +77,10 @@ function init() {
 	{
 		socket.emit("find game");
 	},2000);
+
+	buttonSwitchWeapon.addEventListener("click", function(){
+		socket.emit("command", {fn: "switch weapon"});
+	});
 };
 
 
@@ -206,7 +212,7 @@ function onSetFlagAccept(e)
 	canvas.removeEventListener("mousemove", onSetFlag, false);
 	canvas.removeEventListener("mouseup", onSetFlagAccept, false);
 
-	socket.emit("set", {fn: "flag", x: extraDraw[drawFlag].field.x, y: extraDraw[drawFlag].field.y});
+	socket.emit("command", {fn: "set flag", x: extraDraw[drawFlag].field.x, y: extraDraw[drawFlag].field.y});
 
 	setPistol();
 }
@@ -255,7 +261,7 @@ function onSetPistolAccept(e)
 	canvas.removeEventListener("mousemove", onSetPistol, false);
 	canvas.removeEventListener("mouseup", onSetPistolAccept, false);
 
-	socket.emit("set", {fn: "pistol", x: extraDraw[drawPistol].field.x, y: extraDraw[drawPistol].field.y});
+	socket.emit("command", {fn: "set pistol", x: extraDraw[drawPistol].field.x, y: extraDraw[drawPistol].field.y});
 }
 
 function getMouseFieldPosition(evt)

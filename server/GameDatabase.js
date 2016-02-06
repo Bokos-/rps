@@ -183,7 +183,7 @@ var game_server = module.exports = {};
 		if (client.data.game == null || client.data.game.state > GLOBAL.STATE.PREPARE)
 			return ;
 
-		if (data.fn == "flag" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
+		if (data.fn == "set flag" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
 		{
 			var field = this.getField(client, data.y, data.x);
 			if (field.weapon == GLOBAL.WEAPON.PISTOL)
@@ -195,7 +195,7 @@ var game_server = module.exports = {};
 				client.data.flag.y = data.y;
 		}
 		
-		else if (data.fn == "pistol" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
+		else if (data.fn == "set pistol" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
 		{
 			var field = this.getField(client, data.y, data.x);
 			if (field.weapon == GLOBAL.WEAPON.FLAG)
@@ -206,6 +206,11 @@ var game_server = module.exports = {};
 				client.data.pistol.x = data.x;
 				client.data.pistol.y = data.y;
 
+			this.switchWeapon(client);
+		}
+
+		else if (data.fn == "switch weapon" && client.data.game.state == GLOBAL.STATE.PREPARE)
+		{
 			this.switchWeapon(client);
 		}
 
