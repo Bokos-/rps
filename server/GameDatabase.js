@@ -236,11 +236,12 @@ var game_server = module.exports = {};
 			}
 			else
 			{
-
-				client.data.game.playerBlack.state = GLOBAL.PLAYER_STATE.READY;
+				//WTF client.data.state does not working!
+				//LITTLE FIX
+				if (this.isPlayerWhite(client))
 				client.data.game.playerWhite.state = GLOBAL.PLAYER_STATE.READY;
-
-				console.log(client.data.state == GLOBAL.PLAYER_STATE.READY);
+				else
+				client.data.game.playerBlack.state = GLOBAL.PLAYER_STATE.READY;
 
 				if (client.data.game.playerBlack.state == GLOBAL.PLAYER_STATE.READY && client.data.game.playerWhite.state == GLOBAL.PLAYER_STATE.READY)
 					this.startGame(client.data.game);
