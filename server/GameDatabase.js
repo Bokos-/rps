@@ -35,7 +35,11 @@ var game_server = module.exports = {};
 		var game = new _game.new(index, type);
 		_game.initFields(game.area);
 		game.playerWhite = client;
+
+		if (type == GLOBAL.PUBLIC)
 		games.publicFree.push(game);
+		else
+		games.rankedFree.push(game);
 
 		client.data.game = game;
 	}
@@ -46,11 +50,11 @@ var game_server = module.exports = {};
 		{
 			case GLOBAL.PUBLIC:
 				games.public.push(game);
-				games.publicFree = games.publicFree.slice(1);
+				games.publicFree.splice(0,1);
 			break;
 			case GLOBAL.RANKED:
 				games.ranked.push(game);
-				games.rankedFree = games.publicFree.slice(1);
+				games.publicFree.splice(0,1);
 			break;
 		}
 		
@@ -100,13 +104,65 @@ var game_server = module.exports = {};
 	{
 		if (typeof client.data.game != 'undefined' || client.data.game)
 		{
-			//client.data.game
-
-
-			delete client.data.game;
+			this.deleteGame(client);
 		}
 		
 		delete client.data;
+	}
+
+	game_server.deleteGame = function(client)
+	{
+		if (client.data == null || client.data.game == null)
+			return true;
+
+		if (client.data.game.state == GLOBAL.STATE.WAITING && client.data.game.type == GLOBAL.PUBLIC)
+			this.spliceGame(games.publicFree, game);
+		else if (client.data.game.type == GLOBAL.PUBLIC)
+			this.enemyDisconnected(client, games.public);
+
+		//++implement ranked
+
+		delete game;
+	}
+
+	game_server.spliceGame = function(games, game)
+	{
+		if (typeof game == 'number')
+			var id = game;
+		else
+			var id = game.id;
+		for (var i=0; i<games.length; i++)
+			if (games[i].id == id)
+			{
+				games.splice(i, 1);
+				delete game;
+				console.log("Game has been canceled " + id);
+			}
+	}
+
+	game_server.enemyDisconnected = function(client, games)
+	{
+		if (client.data.game.state == GLOBAL.STATE.DISCONNECT)
+			return ;
+
+		if (this.isPlayerWhite(client))
+			client.data.game.playerBlack.emit("enemy disconnected");
+		else
+			client.data.game.playerWhite.emit("enemy disconnected");
+
+		client.data.game.state = GLOBAL.STATE.DISCONNECT;
+
+		if (typeof client.data == "undefined" || client.data.game == null)
+			return ;
+
+		var that = this;
+		var id = client.data.game.id;
+		console.log("Player disconnected from " + id);
+
+		setTimeout(function()
+		{
+			that.spliceGame(games, id);
+		}, 4500);
 	}
 
 	game_server.isPlayerWhite = function (client)
@@ -117,9 +173,12 @@ var game_server = module.exports = {};
 		return (client.data.game.playerWhite.id == client.id)? 1 : 0;
 	}
 
-	game_server.setCommand = function (client, data)
+	game_server.setGameCommand = function (client, data)
 	{
 		if (typeof data.fn == "undefined")
+			return ;
+
+		if (client.data.game == null || client.data.game.state > GLOBAL.STATE.PREPARE)
 			return ;
 
 		if (data.fn == "flag" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)

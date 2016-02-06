@@ -28,7 +28,8 @@ game.new = function(_id, _type) {
 		playerBlack: playerBlack,
 		area: area,
 		id: id,
-		type: type
+		type: type,
+		state: state
 	}
 };
 

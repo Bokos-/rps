@@ -103,6 +103,8 @@ var setEventHandlers = function() {
 	socket.on("switch weapons", onSwitchWeapon);
 
 	socket.on("fight", onFight);
+
+	socket.on("enemy disconnected", onEnemyDisconnect);
 };
 
 // Keyboard key down
@@ -123,6 +125,11 @@ function onSwitchWeapon(data)
 	for (var i=0; i<data.length; i++)
 		localPlayer.warrior[i] = new Warrior(data[i].x, data[i].y, data[i].weapon);
 
+}
+
+function onEnemyDisconnect()
+{
+	alert("Enemy disconnected...");
 }
 
 function deleteWarriors(warriors)

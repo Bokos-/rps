@@ -33,7 +33,8 @@ GLOBAL.STATE =
 {
 	WAITING: 0,
 	PREPARE: 1,
-	PLAYING: 2
+	PLAYING: 2,
+	DISCONNECT: 3
 };
 
 /**************************************************
@@ -66,7 +67,7 @@ function onSocketConnection(client) {
 
 	client.on("find game", onFindGame);
 	
-	client.on("set", onSetCommand);
+	client.on("set", onSetGameCommand);
 
 	// Listen for client disconnected
 	client.on("disconnect", onClientDisconnect);
@@ -76,9 +77,9 @@ function onFindGame() {
 	GameDatabase.findPublicGame(this);
 }
 
-function onSetCommand(data)
+function onSetGameCommand(data)
 {
-	GameDatabase.setCommand(this, data);
+	GameDatabase.setGameCommand(this, data);
 }
 
 // Socket client has disconnected
