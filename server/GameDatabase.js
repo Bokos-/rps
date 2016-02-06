@@ -49,6 +49,8 @@ var game_server = module.exports = {};
 	game_server.startGame = function(game)
 	{
 		console.log("Game started");
+		game.playerBlack.emit("start game");
+		game.playerWhite.emit("start game");
 	}
 
 	game_server.join = function(client, game, type)

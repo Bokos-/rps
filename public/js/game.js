@@ -91,9 +91,7 @@ function init() {
 ** GAME EVENT HANDLERS
 **************************************************/
 var setEventHandlers = function() {
-	// Mouse click
-	window.addEventListener("mouseup", onClick, false);
-
+	
 	// Socket connection successful
 	socket.on("connect", onSocketConnected);
 
@@ -133,17 +131,23 @@ function sendReady()
 }
 
 // Keyboard key down
-function onClick(e) {
-	if (localPlayer) {
+function onClickMove(e) {
 
-	};
+	var clickPosition = getMouseFieldPosition(e);
+	console.log(clickPosition);
+
 };
+
 
 function onStartGame()
 {
+	console.log("Game started...");
+	
 	buttonSwitchWeapon.removeEventListener("click", sendSwitchWeapon);	
 	buttonReady.addEventListener("click", sendReady);
 	state++;
+
+	window.addEventListener("mouseup", onClickMove, false);
 }
 
 function onSwitchWeapon(data)
