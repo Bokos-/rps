@@ -27,6 +27,8 @@ function init() {
 
 	// Start listening for events
 	setEventHandlers();
+
+	console.log("Server started...");
 };
 
 
