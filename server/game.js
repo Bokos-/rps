@@ -37,6 +37,8 @@ game.switchWeapon = function(client)
 {
 	var weapons = [];
 	var index 	= 2;
+	var equalWeapons = this.getEqualWeapons();
+	var indexWeapon = 0;
 
 	weapons[0] = {x: client.data.flag.x,   y: client.data.flag.y,   weapon: GLOBAL.WEAPON.FLAG};
 	weapons[1] = {x: client.data.pistol.x, y: client.data.pistol.y, weapon: GLOBAL.WEAPON.PISTOL};
@@ -50,8 +52,9 @@ game.switchWeapon = function(client)
 			if (y==client.data.pistol.y && x==client.data.pistol.x)
 			continue;
 			
-			weapons[index] = {x: x, y: y, weapon: this.getRandomWeapon()};
+			weapons[index] = {x: x, y: y, weapon: equalWeapons[indexWeapon]};
 			index++;
+			indexWeapon++;
 		}
 
 	return weapons;
@@ -60,6 +63,51 @@ game.switchWeapon = function(client)
 game.getRandomWeapon = function()
 {
 	return this.randomIntByModulo(1,4);
+}
+
+game.getEqualWeapons = function()
+{
+	var rockCount 		= 0,
+		paperCount 		= 0,
+		scissorsCount 	= 0;
+
+	var equalWeapons = [];
+	var weapon;
+
+	while (rockCount < 4 || paperCount < 4 || scissorsCount < 4) {
+
+		weapon = this.randomIntByModulo(1, 4);
+
+		if (weapon == 1)  {
+			if (rockCount > 3) 
+				continue;
+			else {
+				rockCount++;
+				equalWeapons.push(weapon);
+			}
+		}
+
+		else if (weapon == 2) {
+			if (paperCount > 3) 
+				continue;
+			else {
+				paperCount++;
+				equalWeapons.push(weapon);
+			}
+		}
+
+		else if (weapon == 3) {
+			if (scissorsCount > 3) 
+				continue;
+			else {
+				scissorsCount++;
+				equalWeapons.push(weapon);
+			}
+		}
+	}
+
+	return equalWeapons;
+	
 }
 
 game.randomIntByModulo = function(min, max) {
