@@ -117,8 +117,10 @@ var game_server = module.exports = {};
 
 		if (client.data.game.state == GLOBAL.STATE.WAITING && client.data.game.type == GLOBAL.PUBLIC)
 			this.spliceGame(games.publicFree, game);
-		else if (client.data.game.type == GLOBAL.PUBLIC)
+		else if (client.data.game.type == GLOBAL.PUBLIC && client.data.game.state != GLOBAL.STATE.FINISHED)
 			this.enemyDisconnected(client, games.public);
+		else if (client.data.game.type == GLOBAL.PUBLIC)
+			this.spliceGame(games.public, game);
 
 		//++implement ranked
 

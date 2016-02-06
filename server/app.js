@@ -34,7 +34,8 @@ GLOBAL.STATE =
 	WAITING: 0,
 	PREPARE: 1,
 	PLAYING: 2,
-	DISCONNECT: 3
+	DISCONNECT: 3,
+	FINISHED: 4
 };
 
 /**************************************************
