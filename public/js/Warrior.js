@@ -4,8 +4,8 @@
 
 var Warrior = function(x, y, weapon) {
 	
-	var x;
-	var y;
+	var x = x;
+	var y = y;
 	var weapon = weapon;
 
 	// Define which variables and methods can be accessed

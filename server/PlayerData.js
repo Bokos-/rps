@@ -3,17 +3,19 @@
 **************************************************/
 var PlayerData = function() {
 	var name,
-		games = {
-			public: [],
-			friend: [],
-			ranked: []
-		};
+		game = null,
+		type = null,
+		pistol = {x: 1, y: 0},
+		flag = {x: 0, y: 0 };
 
 
 	// Define which variables and methods can be accessed
 	return {
 		name: name,
-		games: games
+		game: game,
+		type: type,
+		flag: flag,
+		pistol: pistol
 	}
 };
 

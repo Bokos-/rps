@@ -15,10 +15,10 @@ var Player = function() {
 	var draw = function(ctx) {
 		for (var i=0; i<14; i++)
 		{
-			if (warrior[i] == "undefined" || warrior[i].x == -1 || warrior[i].y == -1)
+			if (typeof warrior[i] == "undefined" || warrior[i].x == -1 || warrior[i].y == -1)
 				continue;
 
-			ctx.drawImage(getImage(warrior[i].weapon), margin.left + warrior[i].x * FIELD_SIZE, margin.top + warrior[i].y * FIELD_SIZE);
+			ctx.drawImage(images[getImage(warrior[i].weapon)], getXPos(warrior[i].x), getYPos(warrior[i].y));
 		}
 	};
 

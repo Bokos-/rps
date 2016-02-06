@@ -29,6 +29,13 @@ GLOBAL.WEAPON = {
 	FLAG: 5
 }
 
+GLOBAL.STATE =
+{
+	WAITING: 0,
+	PREPARE: 1,
+	PLAYING: 2
+};
+
 /**************************************************
 ** GAME INITIALISATION
 **************************************************/
@@ -58,6 +65,8 @@ function onSocketConnection(client) {
 	client['data'] = new PlayerData();
 
 	client.on("find game", onFindGame);
+	
+	client.on("set", onSetCommand);
 
 	// Listen for client disconnected
 	client.on("disconnect", onClientDisconnect);
@@ -65,6 +74,11 @@ function onSocketConnection(client) {
 
 function onFindGame() {
 	GameDatabase.findPublicGame(this);
+}
+
+function onSetCommand(data)
+{
+	GameDatabase.setCommand(this, data);
 }
 
 // Socket client has disconnected

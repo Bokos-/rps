@@ -2,9 +2,9 @@
 ** GAME FIELD
 **************************************************/
 
-var Field = function(weapon) {
-	var player,
-		weapon,
+var Field = function() {
+	var player = null,
+		weapon = null,
 		visible;
 
 	return 	{

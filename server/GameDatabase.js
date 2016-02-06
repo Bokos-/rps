@@ -38,9 +38,11 @@ var game_server = module.exports = {};
 		games.publicFree.push(game);
 
 		if (type == GLOBAL.PUBLIC)
-		client.data.games.public.push(game);
+		client.data.type = GLOBAL.PUBLIC;
 		else
-		client.data.games.ranked.push(game);
+		client.data.type = GLOBAL.RANKED;
+
+		client.data.game = game;
 	}
 
 	game_server.join = function(client, game, type)
@@ -49,33 +51,50 @@ var game_server = module.exports = {};
 		{
 			case GLOBAL.PUBLIC:
 				games.public.push(game);
-				client.data.games.public.push(game);
+				client.data.type = GLOBAL.PUBLIC;
 				games.publicFree = games.publicFree.slice(1);
 			break;
 			case GLOBAL.RANKED:
 				games.ranked.push(game);
-				client.data.games.ranked.push(game);
+				client.data.type = GLOBAL.RANKED;
 				games.rankedFree = games.publicFree.slice(1);
 			break;
 		}
 		
-
+		client.data.game = game;
 		game.playerBlack = client;
-		this.startGame(game);
+		this.prepareGame(game);
 	}
 
-	game_server.startGame = function(game)
+	game_server.prepareGame = function(game)
 	{
 		console.log("Game has been started " +game.id+ ".");
+		game.state = GLOBAL.STATE.PREPARE;
 		game.playerBlack.emit("new player");
 		game.playerWhite.emit("new player");
-		game.playerBlack.emit("switch weapons", _game.switchWeapon());
-		game.playerWhite.emit("switch weapons", _game.switchWeapon());
 	}
 
-	game_server.getField = function(game, row, column)
+	game_server.switchWeapon = function(client)
+	{	
+		var weapons = _game.switchWeapon(client);
+		for (var i=0; i<weapons.length; i++)
+		{
+			var field = this.getField(client, weapons[i].y, weapons[i].x)
+				
+			field.weapon = weapons[i].weapon;
+			field.player = client;
+			field.visible = true;
+		}
+
+		client.emit("switch weapons", weapons);
+	}
+
+	game_server.getField = function(client, row, column)
 	{
-		return game.area[row * 8 + column];
+		if (this.isPlayerWhite(client))
+			return client.data.game.area[row * 7 + column];
+		else
+			return client.data.game.area[41 - (row * 7 + column)];
 	}
 
 	game_server.indexUpdate = function()
@@ -86,23 +105,51 @@ var game_server = module.exports = {};
 
 	game_server.freeMemory = function(client)
 	{
-		for (var i=0; i<client.data.games.public.length; i++)
-		{
-			if (client.data.games.public[i] != "undefined")
-			delete client.data.games.public[i];
-		}
-
-		for (var i=0; i<client.data.games.ranked.length; i++)
-		{
-			if (client.data.games.ranked[i] != "undefined")
-			delete client.data.games.ranked[i];
-		}
-
-		for (var i=0; i<client.data.games.friend.length; i++)
-		{
-			if (client.data.games.friend[i] != "undefined")
-			delete client.data.games.friend[i];
-		}
+		if (typeof client.data.game != 'undefined' || client.data.game)
+			delete client.data.game;
+		
+		client.data.type = null;
 
 		delete client.data;
+	}
+
+	game_server.isPlayerWhite = function (client)
+	{
+		if (typeof client.data.game == 'undefined' || client.data.game == null)
+			return -1;
+
+		return (client.data.game.playerWhite.id == client.id)? 1 : 0;
+	}
+
+	game_server.setCommand = function (client, data)
+	{
+		if (typeof data.fn == "undefined")
+			return ;
+
+		if (data.fn == "flag" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
+		{
+			var field = this.getField(client, data.y, data.x);
+			if (field.weapon == GLOBAL.WEAPON.PISTOL)
+				return ;
+				field.weapon = GLOBAL.WEAPON.FLAG;
+				field.player = client;
+				field.visible = true;
+				client.data.flag.x = data.x;
+				client.data.flag.y = data.y;
+		}
+		
+		else if (data.fn == "pistol" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
+		{
+			var field = this.getField(client, data.y, data.x);
+			if (field.weapon == GLOBAL.WEAPON.FLAG)
+				return ;
+				field.weapon = GLOBAL.WEAPON.PISTOL;
+				field.player = client;
+				field.visible = true;
+				client.data.pistol.x = data.x;
+				client.data.pistol.y = data.y;
+
+			this.switchWeapon(client);
+		}
+
 	}
