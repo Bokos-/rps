@@ -14,19 +14,21 @@ game.initFields = function(area)
 	}
 }
 
-game.new = function(_id) {
+game.new = function(_id, _type) {
 
 	var area = new Array(GLOBAL.FIELDS), 
 		id 	 = _id,
 		playerWhite,
 		playerBlack,
-		state = GLOBAL.STATE.WAITING;
+		state = GLOBAL.STATE.WAITING,
+		type = _type;
 
 	return {
 		playerWhite: playerWhite,
 		playerBlack: playerBlack,
 		area: area,
-		id: id
+		id: id,
+		type: type
 	}
 };
 

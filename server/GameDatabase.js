@@ -32,15 +32,10 @@ var game_server = module.exports = {};
 
 	game_server.create = function(client, type)
 	{
-		var game = new _game.new(index);
+		var game = new _game.new(index, type);
 		_game.initFields(game.area);
 		game.playerWhite = client;
 		games.publicFree.push(game);
-
-		if (type == GLOBAL.PUBLIC)
-		client.data.type = GLOBAL.PUBLIC;
-		else
-		client.data.type = GLOBAL.RANKED;
 
 		client.data.game = game;
 	}
@@ -51,12 +46,10 @@ var game_server = module.exports = {};
 		{
 			case GLOBAL.PUBLIC:
 				games.public.push(game);
-				client.data.type = GLOBAL.PUBLIC;
 				games.publicFree = games.publicFree.slice(1);
 			break;
 			case GLOBAL.RANKED:
 				games.ranked.push(game);
-				client.data.type = GLOBAL.RANKED;
 				games.rankedFree = games.publicFree.slice(1);
 			break;
 		}
@@ -106,10 +99,13 @@ var game_server = module.exports = {};
 	game_server.freeMemory = function(client)
 	{
 		if (typeof client.data.game != 'undefined' || client.data.game)
-			delete client.data.game;
-		
-		client.data.type = null;
+		{
+			for (var i=0; i<games.publicFree.length; i++)
 
+
+			delete client.data.game;
+		}
+		
 		delete client.data;
 	}
 

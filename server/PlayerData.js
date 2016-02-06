@@ -4,7 +4,6 @@
 var PlayerData = function() {
 	var name,
 		game = null,
-		type = null,
 		pistol = {x: 1, y: 0},
 		flag = {x: 0, y: 0 };
 
@@ -13,7 +12,6 @@ var PlayerData = function() {
 	return {
 		name: name,
 		game: game,
-		type: type,
 		flag: flag,
 		pistol: pistol
 	}
