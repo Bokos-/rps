@@ -11,7 +11,8 @@ var canvas,			// Canvas DOM element
 	rect;
 
 var totalResources = 6,
-	numResourcesLoaded = 0;
+	numResourcesLoaded = 0,
+	state = 0;
 
 var WEAPON = {
 	NONE: 0,
@@ -38,6 +39,7 @@ var minX = getXPos(0),
 	maxY = getYPos(6);
 
 var buttonSwitchWeapon = document.getElementById("switchWeapon");
+var buttonReady	 	   = document.getElementById("ready");
 
 /**************************************************
 ** GAME INITIALISATION
@@ -78,9 +80,10 @@ function init() {
 		socket.emit("find game");
 	},2000);
 
-	buttonSwitchWeapon.addEventListener("click", function(){
-		socket.emit("command", {fn: "switch weapon"});
-	});
+	buttonSwitchWeapon.addEventListener("click", sendSwitchWeapon);	
+	buttonReady.addEventListener("click", sendReady);
+
+
 };
 
 
@@ -111,7 +114,23 @@ var setEventHandlers = function() {
 	socket.on("fight", onFight);
 
 	socket.on("enemy disconnected", onEnemyDisconnect);
+
+	socket.on("start game", onStartGame);
 };
+
+function sendSwitchWeapon()
+{
+	socket.emit("command", {fn: "switch weapon"});
+}
+
+function sendReady()
+{
+	if (state == 2)
+	{
+		console.log("Send ready...");
+		socket.emit("command", {fn: "ready"});
+	}
+}
 
 // Keyboard key down
 function onClick(e) {
@@ -119,6 +138,13 @@ function onClick(e) {
 
 	};
 };
+
+function onStartGame()
+{
+	buttonSwitchWeapon.removeEventListener("click", sendSwitchWeapon);	
+	buttonReady.addEventListener("click", sendReady);
+	state++;
+}
 
 function onSwitchWeapon(data)
 {
@@ -183,7 +209,6 @@ function setFlag()
 	canvas.addEventListener("mouseup", onSetFlagAccept, false);
 
 	console.log("Set your flag.");
-	
 }
 
 function onSetFlag(e)
@@ -215,6 +240,7 @@ function onSetFlagAccept(e)
 	socket.emit("command", {fn: "set flag", x: extraDraw[drawFlag].field.x, y: extraDraw[drawFlag].field.y});
 
 	setPistol();
+	state++;
 }
 
 function setPistol()
@@ -262,6 +288,7 @@ function onSetPistolAccept(e)
 	canvas.removeEventListener("mouseup", onSetPistolAccept, false);
 
 	socket.emit("command", {fn: "set pistol", x: extraDraw[drawPistol].field.x, y: extraDraw[drawPistol].field.y});
+	state++;
 }
 
 function getMouseFieldPosition(evt)

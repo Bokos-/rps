@@ -38,6 +38,15 @@ GLOBAL.STATE =
 	FINISHED: 4
 };
 
+GLOBAL.PLAYER_STATE = 
+{
+	NONE: 0,
+	FIND: 1,
+	PREPARE: 2,
+	READY: 3,
+	PLAY: 4
+}
+
 /**************************************************
 ** GAME INITIALISATION
 **************************************************/

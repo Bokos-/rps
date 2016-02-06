@@ -42,6 +42,13 @@ var game_server = module.exports = {};
 		games.rankedFree.push(game);
 
 		client.data.game = game;
+		client.data.state = GLOBAL.PLAYER_STATE.FIND;
+
+	}
+
+	game_server.startGame = function(game)
+	{
+		console.log("Game started");
 	}
 
 	game_server.join = function(client, game, type)
@@ -67,6 +74,9 @@ var game_server = module.exports = {};
 	{
 		console.log("Game has been started " +game.id+ ".");
 		game.state = GLOBAL.STATE.PREPARE;
+
+		game.playerWhite.data.state = GLOBAL.PLAYER_STATE.PREPARE;
+		game.playerBlack.data.state = GLOBAL.PLAYER_STATE.PREPARE;
 		game.playerBlack.emit("new player");
 		game.playerWhite.emit("new player");
 	}
@@ -180,10 +190,14 @@ var game_server = module.exports = {};
 		if (typeof data.fn == "undefined")
 			return ;
 
-		if (client.data.game == null || client.data.game.state > GLOBAL.STATE.PREPARE)
+		if (typeof client.data.game == "undefined" || 
+			client.data.game == null || 
+			client.data.game.state != GLOBAL.STATE.PREPARE ||
+			client.data.state != GLOBAL.PLAYER_STATE.PREPARE)
 			return ;
 
-		if (data.fn == "set flag" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
+
+		if (data.fn == "set flag" && _game.checkFlagPistol(client, data))
 		{
 			var field = this.getField(client, data.y, data.x);
 			if (field.weapon == GLOBAL.WEAPON.PISTOL)
@@ -195,7 +209,7 @@ var game_server = module.exports = {};
 				client.data.flag.y = data.y;
 		}
 		
-		else if (data.fn == "set pistol" && _game.checkFlagPistol(client, data) && client.data.game.state == GLOBAL.STATE.PREPARE)
+		else if (data.fn == "set pistol" && _game.checkFlagPistol(client, data))
 		{
 			var field = this.getField(client, data.y, data.x);
 			if (field.weapon == GLOBAL.WEAPON.FLAG)
@@ -209,9 +223,70 @@ var game_server = module.exports = {};
 			this.switchWeapon(client);
 		}
 
-		else if (data.fn == "switch weapon" && client.data.game.state == GLOBAL.STATE.PREPARE)
+		else if (data.fn == "switch weapon")
 		{
 			this.switchWeapon(client);
 		}
 
+		else if (data.fn == "ready")
+		{
+			if (!this.playerIsReady(client))
+			{
+				console.log("Something wrong with player " + client.id + " in game " + client.data.game.id);
+			}
+			else
+			{
+
+				client.data.game.playerBlack.state = GLOBAL.PLAYER_STATE.READY;
+				client.data.game.playerWhite.state = GLOBAL.PLAYER_STATE.READY;
+
+				console.log(client.data.state == GLOBAL.PLAYER_STATE.READY);
+
+				if (client.data.game.playerBlack.state == GLOBAL.PLAYER_STATE.READY && client.data.game.playerWhite.state == GLOBAL.PLAYER_STATE.READY)
+					this.startGame(client.data.game);
+			}
+
+		}
+	}
+
+	game_server.playerIsReady = function (client)
+	{
+		var flag 		  = 0,
+			pistol 		  = 0,
+			countWarriors = 0;
+
+		var isWhite = this.isPlayerWhite(client);
+
+		for (var i=0; i<GLOBAL.FIELDS; i++)	
+		{
+			var field = client.data.game.area[i];
+
+			if (field.player == null || field.player.id != client.id)
+				continue;
+
+			if (isWhite)
+			{
+				if (i<28 && field.player.id == client.id)
+					return false;
+			}
+			else
+			{
+				if (i>13 && field.player.id == client.id)
+					return false;
+			}
+				
+			if (field.weapon == GLOBAL.WEAPON.FLAG)
+				flag++;
+
+			if (field.weapon == GLOBAL.WEAPON.PISTOL)
+				pistol++;
+		}
+
+		if (flag > 1 || pistol > 1)
+			return false;
+
+
+		console.log("Player " + client.id + " is ready in game " + client.data.game.id);
+
+		return true;
 	}

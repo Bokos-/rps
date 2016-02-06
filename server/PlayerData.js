@@ -5,7 +5,8 @@ var PlayerData = function() {
 	var name,
 		game = null,
 		pistol = {x: 1, y: 0},
-		flag = {x: 0, y: 0 };
+		flag = {x: 0, y: 0 },
+		state = GLOBAL.PLAYER_STATE.NONE;
 
 
 	// Define which variables and methods can be accessed
