@@ -6,7 +6,7 @@ var Warrior = function(x, y, weapon) {
 	
 	var x;
 	var y;
-	var weapon = null;
+	var weapon = weapon;
 
 	// Define which variables and methods can be accessed
 	return {

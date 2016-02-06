@@ -67,6 +67,10 @@ var game_server = module.exports = {};
 	game_server.startGame = function(game)
 	{
 		console.log("Game has been started " +game.id+ ".");
+		game.playerBlack.emit("new player");
+		game.playerWhite.emit("new player");
+		game.playerBlack.emit("switch weapons", _game.switchWeapon());
+		game.playerWhite.emit("switch weapons", _game.switchWeapon());
 	}
 
 	game_server.getField = function(game, row, column)

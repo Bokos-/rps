@@ -41,7 +41,7 @@ function init() {
 	localPlayer = new Player();
 
 	// Initialise socket connection
-	socket = io.connect("http://192.168.0.169:3003", {transports: ["websocket"]});
+	socket = io.connect("http://localhost:3003", {transports: ["websocket"]});
 
 	// Initialise remote players array
 	remotePlayer = null;
@@ -56,6 +56,11 @@ function init() {
 	loadImage("pinguin");
 	loadImage("lion");
 	loadImage("fox");
+
+	setTimeout(function()
+	{
+		socket.emit("find game");
+	},2000);
 };
 
 
@@ -81,7 +86,7 @@ var setEventHandlers = function() {
 	// Player removed message received
 	socket.on("remove player", onRemovePlayer);
 
-	socket.on("switch weapon", onSwitchWeapon);
+	socket.on("switch weapons", onSwitchWeapon);
 
 	socket.on("fight", onFight);
 };
@@ -89,14 +94,22 @@ var setEventHandlers = function() {
 // Keyboard key down
 function onClick(e) {
 	if (localPlayer) {
-		keys.onKeyDown(e);
+		socket.emit("switch weapon");
 	};
 };
 
 function onSwitchWeapon(data)
 {
+	console.log("Switch weapon...");
+	deleteWarriors(localPlayer.warrior);
 	for (var i=0; i<data.length; i++)
 		localPlayer.warrior[i] = new Warrior(data[i].x, data[i].y, data[i].weapon);
+}
+
+function deleteWarriors(warriors)
+{
+	for (var i=0; i<warriors.length; i++)
+		delete warriors[i];
 }
 
 function onFight()
@@ -107,9 +120,6 @@ function onFight()
 // Socket connected
 function onSocketConnected() {
 	console.log("Connected to socket server");
-
-	// Send local player data to the game server
-	socket.emit("new player");
 };
 
 // Socket disconnected
@@ -172,7 +182,12 @@ function draw() {
 	// Wipe the canvas clean
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawFloor();
-	ctx.drawImage(images["pinguin"], margin.left, margin.top);
+
+	if (localPlayer)
+	localPlayer.draw(ctx);
+
+	if (remotePlayer)
+	remotePlayer.draw(ctx);
 };
 
 function drawFloor()
@@ -204,25 +219,25 @@ function getImage(weapon)
 	switch (weapon)
 	{
 		case WEAPON.NONE:
-			return "pinguin";
+			return images["pinguin"];
 		break;
 		case WEAPON.ROCK:
-			return "elephant";
+			return images["elephant"];
 		break;
 		case WEAPON.PAPER:
-			return "monkey";
+			return images["monkey"];
 		break;
 		case WEAPON.SCISSORS:
-			return "sob";
+			return images["sob"];
 		break;
 		case WEAPON.PISTOL:
-			return "lion";
+			return images["lion"];
 		break;
 		case WEAPON.FLAG:
-			return "fox";
+			return images["fox"];
 		break;
 		default: 
-			return WEAPON.NONE;
+			return images["pinguin"];
 		break;
 	}
 }

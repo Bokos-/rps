@@ -18,6 +18,17 @@ var socket; // Socket controller
 GLOBAL.PUBLIC = 0;
 GLOBAL.RANKED = 1;
 
+GLOBAL.FIELDS = 42;
+
+GLOBAL.WEAPON = {
+	NONE: 0,
+	ROCK: 1,
+	PAPER: 2,
+	SCISSORS: 3,
+	PISTOL: 4,
+	FLAG: 5
+}
+
 /**************************************************
 ** GAME INITIALISATION
 **************************************************/
