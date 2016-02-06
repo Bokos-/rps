@@ -100,7 +100,7 @@ var game_server = module.exports = {};
 	{
 		if (typeof client.data.game != 'undefined' || client.data.game)
 		{
-			for (var i=0; i<games.publicFree.length; i++)
+			//client.data.game
 
 
 			delete client.data.game;
