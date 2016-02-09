@@ -51,6 +51,9 @@ var game_server = module.exports = {};
 		console.log("Game started");
 		game.playerBlack.emit("start game");
 		game.playerWhite.emit("start game");
+
+		game.round = 1;
+		game.playerWhite.emit("your turn");
 	}
 
 	game_server.join = function(client, game, type)
@@ -98,8 +101,15 @@ var game_server = module.exports = {};
 		client.emit("switch weapons", weapons);
 	}
 
+	game_server.isInt = function(n){
+		return Number(n) === n && n % 1 === 0;
+	}
+
 	game_server.getField = function(client, row, column)
 	{
+		if (row < 0 || row > 5 || column < 0 || column > 6)
+			return -1;
+
 		if (this.isPlayerWhite(client))
 			return client.data.game.area[row * 7 + column];
 		else
@@ -189,6 +199,9 @@ var game_server = module.exports = {};
 
 	game_server.setGameCommand = function (client, data)
 	{
+		if (typeof data == "undefined")
+			return ;	
+
 		if (typeof data.fn == "undefined")
 			return ;
 
@@ -250,6 +263,98 @@ var game_server = module.exports = {};
 			}
 
 		}
+	}
+
+	game_server.onMove = function(client, data)
+	{
+		console.log("move 1");
+		if (typeof data == "undefined")
+			return false;
+		console.log("move 2");
+		if (typeof data.x == "undefined" || typeof data.y == "undefined" || typeof data.nX == "undefined" || typeof data.nY == "undefined")
+			return false;
+		console.log("move 3");
+		if (!this.isInt(data.x) || !this.isInt(data.y) || !this.isInt(data.nX) || !this.isInt(data.nY))
+			return false;
+		console.log("move 4");
+		if (!this.onPlusOne(data.x, data.nX, data.y, data.nY) && !this.onPlusOne(data.y, data.nY, data.x, data.nX))
+			return false;
+		console.log("move 5");
+		if (client.data == null || client.data.game == null)
+			return false;
+		console.log("move 6");
+		var white = this.isPlayerWhite(client);
+
+		console.log("move 7");
+		console.log("round: " + client.data.game.round);
+		console.log(client.data.game.round % 2);
+
+		if (white && client.data.game.round % 2 != 1)
+			return false;
+		console.log("move 8");
+		if (!white && client.data.game.round % 2 != 0)
+			return false;
+		console.log("move 9");
+
+		var field = this.getField(client, data.y, data.x);
+		var moveField = this.getField(client, data.nY, data.nX);
+
+		if (moveField.player != null && field.player.id == moveField.player.id)
+			return false;
+
+		console.log("move 10");
+
+		if (moveField.player != null && field.player.id != client.id)
+			return false;
+
+		console.log("move 11");
+
+		if (field.weapon == GLOBAL.WEAPON.PISTOL || field.weapon == GLOBAL.WEAPON.FLAG)
+		{
+			console.log("move 12");
+			return false;
+		}
+		else if (moveField.weapon == GLOBAL.WEAPON.NONE)
+		{
+			console.log("move 13");
+			if (white)
+				client.data.game.playerBlack.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY});
+			else
+				client.data.game.playerWhite.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY});
+
+			console.log(data);
+
+			moveField.weapon = field.weapon;
+			field.weapon == GLOBAL.WEAPON.NONE;
+		}
+		else if (moveField.weapon == GLOBAL.WEAPON.FLAG)
+		{
+			console.log("move 14");
+			//implements win
+		}
+		else if (moveField.weapon == GLOBAL.WEAPON.PISTOL)
+		{
+			//implements install kill
+			console.log("move 15");
+		}
+		else
+		{
+			//implements RPS
+			console.log("move 16");
+		}
+
+		client.data.game.round++;
+		return true;
+	}
+
+	game_server.onPlusOne = function(prevValueI, valueI, prevValueJ, valueJ)
+	{
+		var newValueI = valueI - prevValueI;
+		var newValueJ = valueJ - prevValueJ;
+
+		if ((newValueI == -1 || newValueI == 1) && newValueJ == 0)
+			return true;
+		return false;
 	}
 
 	game_server.playerIsReady = function (client)

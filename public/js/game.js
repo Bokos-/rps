@@ -41,6 +41,9 @@ var minX = getXPos(0),
 var buttonSwitchWeapon = document.getElementById("switchWeapon");
 var buttonReady	 	   = document.getElementById("ready");
 
+var selectedWarrior = null;
+var enemyWarrior = null;
+
 /**************************************************
 ** GAME INITIALISATION
 **************************************************/
@@ -101,9 +104,6 @@ var setEventHandlers = function() {
 	// New player message received
 	socket.on("new player", onNewPlayer);
 
-	// Player move message received
-	socket.on("move player", onMovePlayer);
-
 	// Player removed message received
 	socket.on("remove player", onRemovePlayer);
 
@@ -112,6 +112,8 @@ var setEventHandlers = function() {
 	socket.on("fight", onFight);
 
 	socket.on("enemy disconnected", onEnemyDisconnect);
+
+	socket.on("your turn", onMyRound);
 
 	socket.on("start game", onStartGame);
 };
@@ -130,24 +132,57 @@ function sendReady()
 	}
 }
 
+function onMyRound(data)
+{
+	if (typeof data != "undefined")
+	{
+		var warrior = remotePlayer.getWarrior(data.x, data.y);
+		warrior.x = data.nX;
+		warrior.y = data.nY;
+	}
+
+	console.log("Your turn...");
+	window.addEventListener("mouseup", onClickMove, false);
+}
+
 // Keyboard key down
 function onClickMove(e) {
 
-	var clickPosition = getMouseFieldPosition(e);
-	console.log(clickPosition);
+	var ePos = getMouseFieldPosition(e);
 
+	var warrior = localPlayer.getWarrior(ePos.x, ePos.y);
+
+	if (warrior != false && warrior.weapon != WEAPON.PISTOL && warrior.weapon != WEAPON.FLAG)
+	{
+		selectedWarrior = warrior;
+	}
+	else
+	{
+		if (selectedWarrior != null && selectedWarrior != false)
+		{			
+			if (!isPlusOne(selectedWarrior.x, ePos.x, selectedWarrior.y, ePos.y) && !isPlusOne(selectedWarrior.y, ePos.y, selectedWarrior.x, ePos.x))
+				return ;
+
+				enemyWarrior = remotePlayer.getWarrior(ePos.x, ePos.y);
+				socket.emit("move", {x: selectedWarrior.x, y: selectedWarrior.y, nX: ePos.x, nY: ePos.y});
+
+				if (enemyWarrior == false)
+				{
+					selectedWarrior.x = ePos.x;
+					selectedWarrior.y = ePos.y;
+				}
+			//window.removeEventListener("mouseup", onClickMove, false);
+		}
+	}
 };
-
 
 function onStartGame()
 {
 	console.log("Game started...");
 	
 	buttonSwitchWeapon.removeEventListener("click", sendSwitchWeapon);	
-	buttonReady.addEventListener("click", sendReady);
+	buttonReady.removeEventListener("click", sendReady);
 	state++;
-
-	window.addEventListener("mouseup", onClickMove, false);
 }
 
 function onSwitchWeapon(data)
@@ -249,7 +284,7 @@ function onSetFlagAccept(e)
 
 function setPistol()
 {
-	if (extraDraw[drawFlag].x == 1)
+	if (extraDraw[drawFlag].field.x == 1)
 	var imgPistol = {x: getXPos(2), y: getYPos(5), img: getImage(WEAPON.PISTOL), field: {x: 2, y: 5}};
 	else
 	var imgPistol = {x: getXPos(1), y: getYPos(5), img: getImage(WEAPON.PISTOL), field: {x: 1, y: 5}};
@@ -322,11 +357,6 @@ function getYPos(y)
 	return margin.top + y*FIELD_SIZE;
 }
 
-// Move player
-function onMovePlayer(data) {
-
-};
-
 // Remove player
 function onRemovePlayer(data) {
 
@@ -397,6 +427,16 @@ function drawExtra()
 
 		ctx.drawImage(images[extraDraw[i].img], extraDraw[i].x, extraDraw[i].y);
 	}
+}
+
+function isPlusOne(prevValueI, valueI, prevValueJ, valueJ)
+{
+	var newValueI = valueI - prevValueI;
+	var newValueJ = valueJ - prevValueJ;
+
+	if ((newValueI == -1 || newValueI == 1) && newValueJ == 0)
+		return true;
+	return false;
 }
 
 function loadImage(name)

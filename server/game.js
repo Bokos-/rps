@@ -21,7 +21,8 @@ game.new = function(_id, _type) {
 		playerWhite,
 		playerBlack,
 		state = GLOBAL.STATE.WAITING,
-		type = _type;
+		type = _type,
+		round = 0;
 
 	return {
 		playerWhite: playerWhite,

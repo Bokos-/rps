@@ -79,9 +79,16 @@ function onSocketConnection(client) {
 	
 	client.on("command", onSetGameCommand);
 
-	// Listen for client disconnected
+	client.on("move", onMove);
+
 	client.on("disconnect", onClientDisconnect);
 };
+
+function onMove(data)
+{
+	if (typeof data != "undefined")
+	GameDatabase.onMove(this, data);
+}
 
 function onFindGame() {
 	GameDatabase.findPublicGame(this);
