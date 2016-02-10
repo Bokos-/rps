@@ -41,6 +41,9 @@ var minX = getXPos(0),
 
 var buttonSwitchWeapon = document.getElementById("switchWeapon");
 var buttonReady	 	   = document.getElementById("ready");
+var infoStatus		   = document.getElementById("info");
+
+infoStatus.innerHTML = "ahoj";
 
 var selectedWarrior = null;
 var enemyWarrior = null;
@@ -167,6 +170,8 @@ function onMyRound(data)
 	}
 
 	console.log("Your turn...");
+	
+	infoStatus.innerHTML = "";
 	window.addEventListener("mouseup", onClickMove, false);
 }
 
@@ -197,6 +202,9 @@ function onClickMove(e) {
 					selectedWarrior.y = ePos.y;
 				}
 			window.removeEventListener("mouseup", onClickMove, false);
+
+			infoStatus.innerHTML = "player moved";
+
 		}
 	}
 };
@@ -226,6 +234,7 @@ function onSwitchWeapon(data)
 function onEnemyDisconnect()
 {
 	console.log("Enemy disconnected...");
+	infoStatus.innerHTML = "Enemy disconnected !";
 }
 
 function deleteWarriors(warriors)
