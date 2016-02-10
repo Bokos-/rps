@@ -136,9 +136,33 @@ function onMyRound(data)
 {
 	if (typeof data != "undefined")
 	{
+		console.log(data);
 		var warrior = remotePlayer.getWarrior(data.x, data.y);
-		warrior.x = data.nX;
-		warrior.y = data.nY;
+		if (typeof data.state != "undefined" && typeof data.weapon != "undefined")
+		{
+			if (data.state)
+			{
+				warrior.x = -1;
+				warrior.y = -1;
+				warrior.weapon = data.weapon;
+			}
+			else
+			{
+				var myWarrior = localPlayer.getWarrior(data.nX, data.nY);
+				if (myWarrior)
+				{
+					myWarrior.x = -1;
+					myWarrior.y = -1;
+				}
+				
+				warrior.x = data.nX;
+				warrior.y = data.nY;
+				warrior.weapon = data.weapon;
+			}
+		} else {
+			warrior.x = data.nX;
+			warrior.y = data.nY;
+		}
 	}
 
 	console.log("Your turn...");
@@ -171,7 +195,7 @@ function onClickMove(e) {
 					selectedWarrior.x = ePos.x;
 					selectedWarrior.y = ePos.y;
 				}
-			//window.removeEventListener("mouseup", onClickMove, false);
+			window.removeEventListener("mouseup", onClickMove, false);
 		}
 	}
 };
@@ -200,7 +224,7 @@ function onSwitchWeapon(data)
 
 function onEnemyDisconnect()
 {
-	alert("Enemy disconnected...");
+	console.log("Enemy disconnected...");
 }
 
 function deleteWarriors(warriors)
@@ -209,8 +233,36 @@ function deleteWarriors(warriors)
 		delete warriors[i];
 }
 
-function onFight()
+function onFight(data)
 {
+	console.log("Fight data");
+	console.log(data);
+	if (typeof data == "undefined")
+		return false;
+
+	switch (data.state)
+	{
+		case -1:
+			//IMPLEMENT FIGHT
+		break;
+		case 0:
+			var warrior = remotePlayer.getWarrior(data.nX, data.nY);
+				warrior.weapon = data.weapon;
+
+			var myWarrior = localPlayer.getWarrior(data.x, data.y);
+				myWarrior.x = -1;
+				myWarrior.y = -1;
+		break;
+		case 1:
+			var warrior = remotePlayer.getWarrior(data.nX, data.nY);
+				warrior.x = -1;
+				warrior.y = -1;
+
+			var myWarrior = localPlayer.getWarrior(data.x, data.y);
+			myWarrior.x = data.nX;
+			myWarrior.y = data.nY;
+		break;
+	}
 
 }
 

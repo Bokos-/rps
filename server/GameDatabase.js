@@ -1,4 +1,4 @@
-var game_server = module.exports = {};
+	var game_server = module.exports = {};
 
 	var _game = require("./Game");
 
@@ -138,7 +138,7 @@ var game_server = module.exports = {};
 			return true;
 
 		if (client.data.game.state == GLOBAL.STATE.WAITING && client.data.game.type == GLOBAL.PUBLIC)
-			this.spliceGame(games.publicFree, game);
+			this.spliceGame(games.publicFree, client.data.game);
 		else if (client.data.game.type == GLOBAL.PUBLIC && client.data.game.state != GLOBAL.STATE.FINISHED)
 			this.enemyDisconnected(client, games.public);
 		else if (client.data.game.type == GLOBAL.PUBLIC)
@@ -309,7 +309,11 @@ var game_server = module.exports = {};
 
 		console.log("move 11");
 
-		if (field.weapon == GLOBAL.WEAPON.PISTOL || field.weapon == GLOBAL.WEAPON.FLAG)
+		if (field.weapon == GLOBAL.WEAPON.NONE)
+		{
+			return false;
+		}
+		else if (field.weapon == GLOBAL.WEAPON.PISTOL || field.weapon == GLOBAL.WEAPON.FLAG)
 		{
 			console.log("move 12");
 			return false;
@@ -322,10 +326,10 @@ var game_server = module.exports = {};
 			else
 				client.data.game.playerWhite.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY});
 
-			console.log(data);
-
+			moveField.player = field.player;
+			field.player = null;
 			moveField.weapon = field.weapon;
-			field.weapon == GLOBAL.WEAPON.NONE;
+			field.weapon = GLOBAL.WEAPON.NONE;
 		}
 		else if (moveField.weapon == GLOBAL.WEAPON.FLAG)
 		{
@@ -341,10 +345,66 @@ var game_server = module.exports = {};
 		{
 			//implements RPS
 			console.log("move 16");
+			var result = this.winFight(field.weapon, moveField.weapon);
+			console.log("RESULT: ", result);
+			console.log("WEAPON1: ", field.weapon);
+			console.log("WEAPON2: ", moveField.weapon);
+			switch (result)
+			{
+				case 0:
+					field.player.emit("fight", {state: -1, weapon: moveField.weapon});
+					moveField.player.emit("fight", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: -1, weapon: field.weapon});
+				break;
+				case 1:
+					field.player.emit("fight", {state: 1, weapon: moveField.weapon, x: data.x, y: data.y, nX: data.nX, nY: data.nY});
+					moveField.player.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: 0, weapon: field.weapon});
+
+					moveField.player = field.player;
+					moveField.weapon = field.weapon;
+					field.player = null;
+					field.weapon = GLOBAL.WEAPON.NONE;
+				break;
+				case 2:
+					field.player.emit("fight", {state: 0, weapon: moveField.weapon, x: data.x, y: data.y, nX: data.nX, nY: data.nY});
+					moveField.player.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: 1, weapon: field.weapon});
+				
+					field.player = null;
+					field.weapon = GLOBAL.WEAPON.NONE;
+				break;
+				default:
+					return false;
+					break;
+			}
 		}
 
 		client.data.game.round++;
 		return true;
+	}
+
+	game_server.winFight = function(weapon, weapon2)
+	{
+		if (weapon == GLOBAL.WEAPON.ROCK && weapon2 == GLOBAL.WEAPON.ROCK)
+			return 0;
+		else if (weapon == GLOBAL.WEAPON.ROCK && weapon2 == GLOBAL.WEAPON.PAPER)
+			return 2;
+		else if (weapon == GLOBAL.WEAPON.ROCK && weapon2 == GLOBAL.WEAPON.SCISSORS)
+			return 1;
+
+		else if (weapon == GLOBAL.WEAPON.PAPER && weapon2 == GLOBAL.WEAPON.ROCK)
+			return 1;
+		else if (weapon == GLOBAL.WEAPON.PAPER && weapon2 == GLOBAL.WEAPON.PAPER)
+			return 0;
+		else if (weapon == GLOBAL.WEAPON.PAPER && weapon2 == GLOBAL.WEAPON.SCISSORS)
+			return 2;
+
+		else if (weapon == GLOBAL.WEAPON.SCISSORS && weapon2 == GLOBAL.WEAPON.ROCK)
+			return 2;
+		else if (weapon == GLOBAL.WEAPON.SCISSORS && weapon2 == GLOBAL.WEAPON.PAPER)
+			return 1;
+		else if (weapon == GLOBAL.WEAPON.SCISSORS && weapon2 == GLOBAL.WEAPON.SCISSORS)
+			return 0;
+		
+		return -1;
 	}
 
 	game_server.onPlusOne = function(prevValueI, valueI, prevValueJ, valueJ)
