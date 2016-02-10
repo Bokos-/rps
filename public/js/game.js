@@ -25,9 +25,10 @@ var WEAPON = {
 
 var FIELD_SIZE = 70;
 
-var margin = {left: 358, top: 40};
-
 var extraDraw = [];
+
+var margin = {left: 0, top: 0};
+var size = {width: 490, height: 420};
 
 var drawFlag = null,
 	drawPistol = null;
@@ -53,8 +54,8 @@ function init() {
 	ctx = canvas.getContext("2d");
 
 	// Maximise the canvas
-	canvas.width = 888;
-	canvas.height = 500;
+	canvas.width = size.width; //888
+	canvas.height = size.height; //500
 
 	rect = canvas.getBoundingClientRect();
 
