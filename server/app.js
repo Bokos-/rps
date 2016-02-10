@@ -81,6 +81,8 @@ function onSocketConnection(client) {
 
 	client.on("move", onMove);
 
+	client.on("tie", onTie);
+
 	client.on("disconnect", onClientDisconnect);
 };
 
@@ -88,6 +90,11 @@ function onMove(data)
 {
 	if (typeof data != "undefined")
 	GameDatabase.onMove(this, data);
+}
+
+function onTie(data)
+{
+	GameDatabase.onTie(this, data);
 }
 
 function onFindGame() {

@@ -197,6 +197,11 @@
 		return (client.data.game.playerWhite.id == client.id)? 1 : 0;
 	}
 
+	game_server.isWhiteRound = function (game)
+	{
+		return game.round % 2 == 1;
+	}
+
 	game_server.setGameCommand = function (client, data)
 	{
 		if (typeof data == "undefined")
@@ -267,34 +272,22 @@
 
 	game_server.onMove = function(client, data)
 	{
-		console.log("move 1");
 		if (typeof data == "undefined")
 			return false;
-		console.log("move 2");
 		if (typeof data.x == "undefined" || typeof data.y == "undefined" || typeof data.nX == "undefined" || typeof data.nY == "undefined")
 			return false;
-		console.log("move 3");
 		if (!this.isInt(data.x) || !this.isInt(data.y) || !this.isInt(data.nX) || !this.isInt(data.nY))
 			return false;
-		console.log("move 4");
 		if (!this.onPlusOne(data.x, data.nX, data.y, data.nY) && !this.onPlusOne(data.y, data.nY, data.x, data.nX))
 			return false;
-		console.log("move 5");
 		if (client.data == null || client.data.game == null)
 			return false;
-		console.log("move 6");
 		var white = this.isPlayerWhite(client);
-
-		console.log("move 7");
-		console.log("round: " + client.data.game.round);
-		console.log(client.data.game.round % 2);
 
 		if (white && client.data.game.round % 2 != 1)
 			return false;
-		console.log("move 8");
 		if (!white && client.data.game.round % 2 != 0)
 			return false;
-		console.log("move 9");
 
 		var field = this.getField(client, data.y, data.x);
 		var moveField = this.getField(client, data.nY, data.nX);
@@ -302,12 +295,8 @@
 		if (moveField.player != null && field.player.id == moveField.player.id)
 			return false;
 
-		console.log("move 10");
-
 		if (moveField.player != null && field.player.id != client.id)
 			return false;
-
-		console.log("move 11");
 
 		if (field.weapon == GLOBAL.WEAPON.NONE)
 		{
@@ -315,12 +304,10 @@
 		}
 		else if (field.weapon == GLOBAL.WEAPON.PISTOL || field.weapon == GLOBAL.WEAPON.FLAG)
 		{
-			console.log("move 12");
 			return false;
 		}
 		else if (moveField.weapon == GLOBAL.WEAPON.NONE)
 		{
-			console.log("move 13");
 			if (white)
 				client.data.game.playerBlack.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY});
 			else
@@ -333,25 +320,32 @@
 		}
 		else if (moveField.weapon == GLOBAL.WEAPON.FLAG)
 		{
-			console.log("move 14");
 			//implements win
 		}
 		else if (moveField.weapon == GLOBAL.WEAPON.PISTOL)
 		{
 			//implements install kill
-			console.log("move 15");
 		}
 		else
 		{
-			//implements RPS
-			console.log("move 16");
 			var result = this.winFight(field.weapon, moveField.weapon);
-			console.log("RESULT: ", result);
-			console.log("WEAPON1: ", field.weapon);
-			console.log("WEAPON2: ", moveField.weapon);
 			switch (result)
 			{
 				case 0:
+					if (white)
+					{
+						client.data.game.tie.wField = field;
+						client.data.game.tie.bField = moveField;
+						client.data.game.tie.start = 0;
+					}
+					else
+					{
+						client.data.game.tie.wField = moveField;
+						client.data.game.tie.bField = field;	
+						client.data.game.tie.start = 1;		
+					}
+					client.data.game.tie.data = data;
+
 					field.player.emit("fight", {state: -1, weapon: moveField.weapon});
 					moveField.player.emit("fight", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: -1, weapon: field.weapon});
 				break;
@@ -405,6 +399,65 @@
 			return 0;
 		
 		return -1;
+	}
+
+	game_server.onTie = function(client, data)
+	{
+		if (typeof data == "undefined")
+			return false;
+
+		if (typeof data.weapon == "undefined")
+			return false;
+
+		if (client.data == null || client.data.game == null)
+			return false;
+
+		if (!this.isInt(data.weapon))
+			return false;
+
+		if (data.weapon < 1 || data.weapon > 3)
+			return false;
+
+		if (client.data.game.tie.start == -1)
+			return false;
+
+		var white = this.isPlayerWhite(client);
+
+		if (white)
+			client.data.game.tie.wW = data.weapon;
+		else
+			client.data.game.tie.bW = data.weapon;
+
+		if (client.data.game.tie.wW && client.data.game.tie.bW)
+		{
+
+			var result = this.winFight(client.data.game.tie.wW, client.data.game.tie.bW);
+			switch (result)
+			{
+				case 0:
+					client.data.game.tie.wW = GLOBAL.WEAPON.NONE; 
+					client.data.game.tie.bW = GLOBAL.WEAPON.NONE;
+
+					client.data.game.tie.wField.player.emit("fight", {state: -1, weapon: client.data.game.tie.bW});
+					client.data.game.tie.bField.player.emit("fight", {state: -1, weapon: client.data.game.tie.wW});
+				break;
+
+				case 1:
+					if (isWhiteRound(client))
+					{
+						field.player.emit("fight", {state: 1, weapon: client.weapon, x: data.x, y: data.y, nX: data.nX, nY: data.nY});
+						moveField.player.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: 0, weapon: field.weapon});
+					}
+					else
+					{
+
+					}
+
+				break;
+			}
+
+		}
+
 	}
 
 	game_server.onPlusOne = function(prevValueI, valueI, prevValueJ, valueJ)

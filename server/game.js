@@ -22,7 +22,15 @@ game.new = function(_id, _type) {
 		playerBlack,
 		state = GLOBAL.STATE.WAITING,
 		type = _type,
-		round = 0;
+		round = 0,
+		tie = {
+			bW: GLOBAL.WEAPON.NONE,
+			wW: GLOBAL.WEAPON.NONE,
+			wField: null,
+			bField: null,
+			start: -1,	//start 0: white, 1: black, -1: NOT SET
+			data: null
+		};
 
 	return {
 		playerWhite: playerWhite,
@@ -30,7 +38,8 @@ game.new = function(_id, _type) {
 		area: area,
 		id: id,
 		type: type,
-		state: state
+		state: state,
+		tie: tie
 	}
 };
 
