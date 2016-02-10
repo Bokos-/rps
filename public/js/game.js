@@ -57,8 +57,8 @@ function init() {
 	ctx = canvas.getContext("2d");
 
 	// Maximise the canvas
-	canvas.width = size.width; //888
-	canvas.height = size.height; //500
+	canvas.width = size.width; //888 cela hra
+	canvas.height = size.height; //500 cela hra
 
 	rect = canvas.getBoundingClientRect();
 
@@ -170,8 +170,7 @@ function onMyRound(data)
 	}
 
 	console.log("Your turn...");
-	
-	infoStatus.innerHTML = "";
+	infoStatus.innerHTML = localPlayer.color? "BLACK TURN" : "WHITE TURN";
 	window.addEventListener("mouseup", onClickMove, false);
 }
 
@@ -203,8 +202,7 @@ function onClickMove(e) {
 				}
 			window.removeEventListener("mouseup", onClickMove, false);
 
-			infoStatus.innerHTML = "player moved";
-
+			infoStatus.innerHTML = !localPlayer.color? "BLACK TURN" : "WHITE TURN";
 		}
 	}
 };
@@ -212,6 +210,8 @@ function onClickMove(e) {
 function onStartGame()
 {
 	console.log("Game started...");
+
+	infoStatus.innerHTML = "WHITE TURN";
 	
 	buttonSwitchWeapon.removeEventListener("click", sendSwitchWeapon);	
 	buttonReady.removeEventListener("click", sendReady);
@@ -291,8 +291,10 @@ function onNewPlayer(data) {
 	console.log("New player connected");
 
 	// Initialise the new player
+	localPlayer.color = data.yourColor;
 	var newPlayer = new Player();
 	remotePlayer = newPlayer;
+	remotePlayer.color = data.yourColor == 1? 0 : 1; 
 
 	for (var i=0; i<2; i++)
 		for (var j=0; j<7; j++)

@@ -4,6 +4,7 @@
 var Player = function() {
 	
 	var warrior = new Array(14);
+	var color = 0;
 	initWarriors(warrior);
 
 	var update = function(keys) {	
@@ -51,7 +52,8 @@ var Player = function() {
 		getWarrior: getWarrior,
 		update: update,
 		draw: draw,
-		warrior: warrior
+		warrior: warrior,
+		color: color
 	}
 };
 
