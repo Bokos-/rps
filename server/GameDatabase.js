@@ -82,8 +82,8 @@
 
 		game.playerWhite.data.state = GLOBAL.PLAYER_STATE.PREPARE;
 		game.playerBlack.data.state = GLOBAL.PLAYER_STATE.PREPARE;
-		game.playerBlack.emit("new player");
-		game.playerWhite.emit("new player");
+		game.playerBlack.emit("new player", {yourColor: 1});
+		game.playerWhite.emit("new player", {yourColor: 0});
 	}
 
 	game_server.switchWeapon = function(client)
@@ -445,12 +445,29 @@
 				case 1:
 					if (isWhiteRound(client))
 					{
-						field.player.emit("fight", {state: 1, weapon: client.weapon, x: data.x, y: data.y, nX: data.nX, nY: data.nY});
-						moveField.player.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: 0, weapon: field.weapon});
+						if (client.data.game.tie.start == 1) //white
+						{
+							field.player.emit("fight", {state: 1, weapon: client.data.game.tie.bW, x: client.data.game.tie.data.x, y: client.data.game.tie.data.y, nX: client.data.game.tie.data.nX, nY: client.data.game.tie.data.nY});
+							moveField.player.emit("your turn", {x: 6-client.data.game.tie.data.x, y: 5-client.data.game.tie.data.y, nX: 6-client.data.game.tie.data.nX, nY: 5-client.data.game.tie.data.nY, state: 0, weapon: client.data.game.tie.wField});
+						}
+						else //black
+						{
+							field.player.emit("fight", {state: 1, weapon: client.data.game.tie.bW, x: 6-client.data.game.tie.data.x, y: 5-client.data.game.tie.data.y, nX: 6-client.data.game.tie.data.nX, nY: 5-client.data.game.tie.data.nY});
+							moveField.player.emit("your turn", {x: client.data.game.tie.data.x, y: client.data.game.tie.data.y, nX: client.data.game.tie.data.nX, nY: client.data.game.tie.data.nY, state: 0, weapon: client.data.game.tie.wField});
+						}
 					}
 					else
 					{
-
+						if (client.data.game.tie.start == 1) //white
+						{
+							field.player.emit("your turn", {state: 1, weapon: client.data.game.tie.bW, x: client.data.game.tie.data.x, y: client.data.game.tie.data.y, nX: client.data.game.tie.data.nX, nY: client.data.game.tie.data.nY});
+							moveField.player.emit("fight", {x: 6-client.data.game.tie.data.x, y: 5-client.data.game.tie.data.y, nX: 6-client.data.game.tie.data.nX, nY: 5-client.data.game.tie.data.nY, state: 0, weapon: client.data.game.tie.wField});
+						}
+						else	//black
+						{
+							field.player.emit("your turn", {state: 1, weapon: client.data.game.tie.bW, x: 6-client.data.game.tie.data.x, y: 5-client.data.game.tie.data.y, nX: 6-client.data.game.tie.data.nX, nY: 5-client.data.game.tie.data.nY});
+							moveField.player.emit("fight", {x: client.data.game.tie.data.x, y: client.data.game.tie.data.y, nX: client.data.game.tie.data.nX, nY: client.data.game.tie.data.nY, state: 0, weapon: client.data.game.tie.wField});
+						}
 					}
 
 				break;
