@@ -272,6 +272,15 @@
 
 	game_server.onMove = function(client, data)
 	{
+        if (typeof data == "undefined")
+            return false;
+        if (typeof data.x == "undefined" || typeof data.y == "undefined" || typeof data.nX == "undefined" || typeof data.nY == "undefined")
+            return false;
+        if (!this.isInt(data.x) || !this.isInt(data.y) || !this.isInt(data.nX) || !this.isInt(data.nY))
+            return false;
+        if (client.data == null || client.data.game == null)
+            return false;
+
 		var white = this.isPlayerWhite(client);
 
 		if (white && client.data.game.round % 2 != 1)
@@ -351,7 +360,7 @@
 					break;
 				case 1:
 					field.player.emit("fight", {state: 1, weapon: moveField.weapon, x: data.x, y: data.y, nX: data.nX, nY: data.nY});
-					moveField.player.emit("your turn", {nX: 6-data.x, nY: 5-data.y, x: 6-data.nX, y: 5-data.nY, state: 0, weapon: field.weapon});
+					moveField.player.emit("your turn", {state: 0, x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY});
 
 					moveField.player = field.player;
 					moveField.weapon = field.weapon;
@@ -360,7 +369,7 @@
 				break;
 				case 2:
 					field.player.emit("fight", {state: 0, weapon: moveField.weapon, x: data.x, y: data.y, nX: data.nX, nY: data.nY});
-					moveField.player.emit("your turn", {x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY, state: 1, weapon: field.weapon});
+					moveField.player.emit("your turn", {state: 1, x: 6-data.x, y: 5-data.y, nX: 6-data.nX, nY: 5-data.nY});
 				
 					field.player = null;
 					field.weapon = GLOBAL.WEAPON.NONE;
