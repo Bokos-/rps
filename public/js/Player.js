@@ -1,11 +1,11 @@
 /**************************************************
 ** GAME PLAYER CLASS
 **************************************************/
-var Player = function() {
+var Player = function(enemyPlayer = false) {
 	
 	var warrior = new Array(14);
 	var color = 0;
-	initWarriors(warrior);
+	initWarriors(warrior, enemyPlayer);
 
 	var update = function(keys) {	
 
@@ -42,7 +42,7 @@ var Player = function() {
 			if (typeof warrior[i] == "undefined" || warrior[i].x == -1 || warrior[i].y == -1)
 				continue;
 
-			ctx.drawImage(images[getImage(warrior[i].weapon)], getXPos(warrior[i].x), getYPos(warrior[i].y));
+			ctx.drawImage(images[getImage(warrior[i].weapon, warrior[i].enemyPlayer)], getXPos(warrior[i].x), getYPos(warrior[i].y));
 		}
 	};
 
@@ -57,8 +57,8 @@ var Player = function() {
 	}
 };
 
-function initWarriors(warriors)
+function initWarriors(warriors, enemyPlayer)
 {
 	for (var i=0; i<14; i++)
-		warriors[i] = new Warrior(-1, -1, 0);
+		warriors[i] = new Warrior(-1, -1, 0, enemyPlayer);
 }

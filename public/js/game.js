@@ -66,7 +66,7 @@ function init() {
 	localPlayer = new Player();
 
 	// Initialise socket connection
-	socket = io.connect("http://localhost:3003", {transports: ["websocket"]});
+	socket = io.connect("http://localhost:3003");
 
 	// Initialise remote players array
 	remotePlayer = null;
@@ -87,7 +87,7 @@ function init() {
 		socket.emit("find game");
 	},2000);
 
-	buttonSwitchWeapon.addEventListener("click", sendSwitchWeapon);	
+	buttonSwitchWeapon.addEventListener("click", sendSwitchWeapon);
 	buttonReady.addEventListener("click", sendReady);
 
 
@@ -120,7 +120,18 @@ var setEventHandlers = function() {
 	socket.on("your turn", onMyRound);
 
 	socket.on("start game", onStartGame);
+
+    socket.on("win", onWinGame);
+    socket.on("loose", onLooseGame);
 };
+
+function onWinGame() {
+	alert("WIN!!!");
+}
+
+function onLooseGame() {
+	alert("LOOSE :(");
+}
 
 function sendSwitchWeapon()
 {
@@ -140,15 +151,26 @@ function onMyRound(data)
 {
 	if (typeof data != "undefined")
 	{
-		console.log(data);
 		var warrior = remotePlayer.getWarrior(data.x, data.y);
-		if (typeof data.state != "undefined" && typeof data.weapon != "undefined")
+
+		if (typeof data.state != "undefined")
 		{
-			if (data.state)
+			if (data.state == 1)
 			{
 				warrior.x = -1;
 				warrior.y = -1;
 				warrior.weapon = data.weapon;
+
+			} else if (data.state == -1) {
+                warrior.x = -1;
+                warrior.y = -1;
+
+                var myWarrior = localPlayer.getWarrior(data.nX, data.nY);
+                if (myWarrior)
+                {
+                    myWarrior.x = -1;
+                    myWarrior.y = -1;
+                }
 			}
 			else
 			{
@@ -245,15 +267,19 @@ function deleteWarriors(warriors)
 
 function onFight(data)
 {
-	console.log("Fight data");
-	console.log(data);
 	if (typeof data == "undefined")
 		return false;
 
 	switch (data.state)
 	{
 		case -1:
-			//IMPLEMENT FIGHT
+            var warrior = remotePlayer.getWarrior(data.nX, data.nY);
+            warrior.x = -1;
+            warrior.y = -1;
+
+            var myWarrior = localPlayer.getWarrior(data.x, data.y);
+            myWarrior.x = -1;
+            myWarrior.y = -1;
 		break;
 		case 0:
 			var warrior = remotePlayer.getWarrior(data.nX, data.nY);
@@ -292,13 +318,13 @@ function onNewPlayer(data) {
 
 	// Initialise the new player
 	localPlayer.color = data.yourColor;
-	var newPlayer = new Player();
+	var newPlayer = new Player(true);
 	remotePlayer = newPlayer;
 	remotePlayer.color = data.yourColor == 1? 0 : 1; 
 
 	for (var i=0; i<2; i++)
 		for (var j=0; j<7; j++)
-		remotePlayer.warrior[i*7+j] = new Warrior(j, i, WEAPON.NONE);
+		remotePlayer.warrior[i*7+j] = new Warrior(j, i, WEAPON.NONE, true);
 
 	setFlag();
 };
@@ -513,8 +539,12 @@ function loadImage(name)
 	images[name].src = "images/" + name + ".png";
 }
 
-function getImage(weapon)
+function getImage(weapon, isEnemyPlayer = false)
 {
+	if (isEnemyPlayer) {
+        return "pinguin";
+	}
+
 	switch (weapon)
 	{
 		case WEAPON.NONE:
